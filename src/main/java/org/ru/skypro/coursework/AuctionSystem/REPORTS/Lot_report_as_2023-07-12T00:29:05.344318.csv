@@ -1,0 +1,6 @@
+id;title;status;lastBidder;currentPrice;
+1;first;STOPPED;"First bidder";110.0;
+2;second;STARTED;null;200.0;
+3;third;STARTED;null;300.0;
+4;fourth;STARTED;null;400.0;
+5;fifth;CREATED;null;500.0;
