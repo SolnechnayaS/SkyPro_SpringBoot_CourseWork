@@ -1,6 +1,9 @@
 package org.ru.skypro.coursework.AuctionSystem.service;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.ru.skypro.coursework.AuctionSystem.model.Report;
+import org.ru.skypro.coursework.AuctionSystem.model.projections.LotFullInfo;
 import org.ru.skypro.coursework.AuctionSystem.model.projections.LotInfoForCSV;
 import org.ru.skypro.coursework.AuctionSystem.repository.*;
 import org.slf4j.Logger;
@@ -11,7 +14,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -29,38 +35,29 @@ public class ReportServiceImpl implements ReportService{
         this.reportRepository = reportRepository;
     }
 
-    public String serializeLotInfoForCSV (LotInfoForCSV lotInfoForCSV) {
-        return lotInfoForCSV.getLotId()+
-                ";"+
-                lotInfoForCSV.getTitle()+
-                ";"+
-                lotInfoForCSV.getLotStatus()+
-                ";"+
-                lotInfoForCSV.getLastBidder()+
-                ";"+
-                lotInfoForCSV.getBidPrice()+
-                ";";
+    public Object[] serializeLotInfoForCSV (LotFullInfo lotFullInfo) {
+        return new Object[]{lotFullInfo.getLotId(),lotFullInfo.getTitle(),lotFullInfo.getLotStatus(),lotFullInfo.getLastBidder(),lotFullInfo.getBidPrice(),"\n"};
    }
 
     @Override
     public ResponseEntity<Resource> getCSVFile() throws IOException {
-        String headers = "id;title;status;lastBidder;currentPrice;\n";
-        String csvTextReport = headers+
-                        lotRepository
-                        .findAllLotFullInfo()
-                        .stream()
-                        .map(LotInfoForCSV::fromLotFullInfo)
-                        .map(this::serializeLotInfoForCSV)
-                        .collect(Collectors.joining("\n"));
-
         String fileName = "Lot_report_as_" + LocalDateTime.now() +
                 ".csv";
         Path path = Path.of(
                 "src/main/java/org/ru/skypro/coursework/AuctionSystem",
                 "/REPORTS",
                 fileName);
-
-        Files.writeString(path, csvTextReport);
+        try (Writer writer = new FileWriter(path.toFile());
+             CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.newFormat(';'))) {
+            csvPrinter.printRecord("id","title", "status", "lastBidder", "bidPrice","\n");
+            for (LotFullInfo r  : lotRepository.findAllLotFullInfo()) {
+                csvPrinter.printRecord(serializeLotInfoForCSV(r));
+            }
+            csvPrinter.flush();
+            System.out.println("CSV file written successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         Report report = new Report(String.valueOf(path));
         reportRepository.save(report);
