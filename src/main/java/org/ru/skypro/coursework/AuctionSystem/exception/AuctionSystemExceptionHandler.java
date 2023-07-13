@@ -27,8 +27,8 @@ public class AuctionSystemExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<?> handlerException(Exception exception) {
-        logger.error("Forbidden");
-        return new ResponseEntity<>("Ошибка запроса, переданы некорректные параметры",HttpStatus.FORBIDDEN);
+        logger.error("Ошибка запроса, переданы некорректные параметры");
+        return new ResponseEntity<>("Ошибка запроса, переданы некорректные параметры",HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler

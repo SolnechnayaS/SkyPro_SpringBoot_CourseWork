@@ -41,14 +41,23 @@ public interface BidRepository extends CrudRepository <Bid, Integer>,
             nativeQuery = true)
     Bid lastBid (Long lotId);
 
-    @Query(value = "SELECT bidder_name FROM " +
-            "(SELECT bidder_name, COUNT(bid_id) " +
-            "FROM bid WHERE lot_id= :lotId " +
-            "GROUP BY BIDDER_NAME) AS subselect1 " +
-            "WHERE count=(SELECT MAX(count) " +
-            "FROM (SELECT bidder_name, COUNT(bid_id) " +
-            "FROM bid WHERE lot_id= :lotId " +
-            "GROUP BY bidder_name) AS subselect2)",
+//    @Query(value = "SELECT bidder_name FROM " +
+//            "(SELECT bidder_name, COUNT(bid_id) " +
+//            "FROM bid WHERE lot_id= :lotId " +
+//            "GROUP BY BIDDER_NAME) AS subselect1 " +
+//            "WHERE count=(SELECT MAX(count) " +
+//            "FROM (SELECT bidder_name, COUNT(bid_id) " +
+//            "FROM bid WHERE lot_id= :lotId " +
+//            "GROUP BY bidder_name) AS subselect2)",
+//            nativeQuery = true)
+//    String bidderName(Long lotId);
+
+    @Query(value = "select bidder_name " +
+            "from bid " +
+            "where lot_id = :lotId " +
+            "group by bidder_name " +
+            "order by count(*) desc " +
+            "limit 1",
             nativeQuery = true)
     String bidderName(Long lotId);
 
